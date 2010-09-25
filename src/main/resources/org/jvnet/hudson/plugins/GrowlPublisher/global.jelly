@@ -1,0 +1,15 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler"
+	xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson"
+	xmlns:f="/lib/form">
+	<f:section title="Global Growl Settings">
+		<f:entry title="Password" help="/plugin/growl/help-global-password.html">
+			<input class="setting-input" name="growl.password"
+				type="password" value="${descriptor.password}" />
+		</f:entry>
+			
+		<f:entry title="Only Growl on Failure or Recovery?" help="/plugin/growl/help-global-onfailure.html">
+		    <f:checkbox name="growl.onlyOnFailureOrRecovery" checked="${descriptor.onlyOnFailureOrRecovery}" />
+		</f:entry>
+		
+	</f:section>
+</j:jelly>
