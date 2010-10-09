@@ -26,7 +26,7 @@
     <!--  Used to provide libgrowl, http://sourceforge.net/projects/libgrowl/vf .. -->
     <repository>
         <id>sbower-snapshots</id>
-        <url>http://github.com/sbower/sbower-mvn-repo/raw/master/snapshots</url>
+        <url>http://github.com/sbower/sbower-mvn-repo/raw/master/releases</url>
     </repository>
   </repositories>
 
@@ -39,7 +39,7 @@
     <dependency>
       <groupId>net.sf.libgrowl</groupId>
       <artifactId>libgrowl</artifactId>
-      <version>0.3-SNAPSHOT</version>
+      <version>0.3</version>
     </dependency>
  </dependencies>
   
