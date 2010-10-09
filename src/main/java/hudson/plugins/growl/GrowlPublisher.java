@@ -33,7 +33,7 @@ import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 import hudson.tasks.Mailer;
 
-import org.jvnet.hudson.plugins.MacGrowler;
+import hudson.plugins.growl.MacGrowler;
 
 /**
  * @author srb55

@@ -1,4 +1,4 @@
-package org.jvnet.hudson.plugins;
+package hudson.plugins.growl;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
