@@ -1,4 +1,4 @@
-package org.jvnet.hudson.plugins;
+package hudson.plugins.growl;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -39,6 +39,7 @@ import org.jvnet.hudson.plugins.MacGrowler;
  * @author srb55
  */
 
+@SuppressWarnings("unchecked")
 public class GrowlPublisher extends Notifier {
 
     private static final List<String> VALUES_REPLACED_WITH_NULL = Arrays.asList("", "(Default)",
@@ -142,27 +143,21 @@ public class GrowlPublisher extends Notifier {
             			LOGGER.log(Level.INFO, "Sending Growl to " + clients[i] + "...");
                     	String message = createGrowlMessage(build);
                     	
-                        // connect to Growl on the given host
                         GrowlConnector growl = new GrowlConnector(clients[i]);
-
-                        // give your application a name and icon (optionally)
+                        growl.setPassword(password);
+                        
                         Application hudsonApp = new Application("Hudson");
                         hudsonApp.setIcon("http://hudson-ci.org/images/butler.png");
                        
-                        // create reusable notification types, their names are used in the Growl settings
                         NotificationType buildNotify = new NotificationType("BuildNotify");
                         NotificationType[] notificationTypes = new NotificationType[] { buildNotify };
-
-                        // now register the application in growl
+                        
                         growl.register(hudsonApp, notificationTypes);
 
-                        // create a notification with specific title and message
                         Notification hudsonNotify = new Notification(hudsonApp, buildNotify, "Hudson Build", message);
                         hudsonNotify.setSticky(true);
                         
-                        // finally send the notification
                         if (growl.notify(hudsonNotify) != IResponse.OK){
-                        	//Send to mac via UDP
                             MacGrowler notifier = MacGrowler.register( appName, password, clients[i]);
                             notifier.notify( appName, "Hudson Build", message, password);
                         }
@@ -228,7 +223,6 @@ public class GrowlPublisher extends Notifier {
    
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
-        private static final Logger LOGGER = Logger.getLogger(DescriptorImpl.class.getName());
 
         public String password;
         public boolean onlyOnFailureOrRecovery;
@@ -269,9 +263,8 @@ public class GrowlPublisher extends Notifier {
             return onlyOnFailureOrRecovery;
         }
 
-        @SuppressWarnings("unchecked")
-		@Override
-        public boolean isApplicable(Class<? extends AbstractProject> jobType) {
+        @Override
+        public boolean isApplicable(@SuppressWarnings("rawtypes") Class<? extends AbstractProject> jobType) {
             return true;
         }
 

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.jvnet.hudson.plugins;
+package hudson.plugins.growl;
 
 
 import org.junit.Before;
