@@ -1,6 +1,0 @@
-<project>
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>com.growl</groupId>
-  <artifactId>libgrowl</artifactId>
-  <version>0.2</version>
-</project>

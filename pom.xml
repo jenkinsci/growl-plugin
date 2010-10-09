@@ -24,12 +24,10 @@
   </developers>
 
   <repositories>
-    
     <!--  Used to provide libgrowl, http://sourceforge.net/projects/libgrowl/vf .. -->
     <repository>
-      <id>local-internal</id>
-      <name>growl-libs</name>
-      <url>file:libs</url>
+        <id>sbower-snapshots</id>
+        <url>http://github.com/sbower/sbower-mvn-repo/raw/master/snapshots</url>
     </repository>
   </repositories>
 
@@ -40,9 +38,9 @@
 	     <version>3.1</version>
 	 </dependency>
     <dependency>
-      <groupId>com.growl</groupId>
+      <groupId>net.sf.libgrowl</groupId>
       <artifactId>libgrowl</artifactId>
-      <version>0.2</version>
+      <version>0.3-SNAPSHOT</version>
     </dependency>
  </dependencies>
   
