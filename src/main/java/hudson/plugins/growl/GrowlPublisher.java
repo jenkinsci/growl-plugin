@@ -105,21 +105,30 @@ public class GrowlPublisher extends Notifier {
 		return String.format("Project: %s\nStatus: %s\nBuild Number: %d\nURL:%s", projectName, result, build.number, tinyUrl);
 	}
 
-   	private boolean pingHost(String host) {
-   		
-		try
-		{
-		    InetAddress address = InetAddress.getByName(host);
-		    return address.isReachable(10000);
-		
-		} catch (Exception e)
-		{
-		    e.printStackTrace();
-		    return false;
-		}
-   		
+    public static boolean fallbackPingHost(String host) {
+        try
+        {
+            String command = "ping " + (System.getProperty("os.name").toLowerCase().indexOf("win")>=0) ? "-n 1 -w 1000 " : "-c 1 -W 1 ";
+            Process p = Runtime.getRuntime().exec(command + host);
+            p.waitFor();
+            return (p.exitValue() == 0);
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
-   	}
+    private boolean pingHost(String host) {
+	try
+	{
+	    InetAddress address = InetAddress.getByName(host);
+	    return (address.isReachable(10000) || fallbackPingHost(host));
+	} catch (Exception e)
+	{
+	    e.printStackTrace();
+	    return false;
+	}
+    }
+
     public String getIP() {
         return IP;
     }
