@@ -117,17 +117,17 @@ public class GrowlPublisher extends Notifier {
         }
     }
 
-    private boolean pingHost(String host) {
-	try
-	{
-	    InetAddress address = InetAddress.getByName(host);
-	    return (address.isReachable(10000) || fallbackPingHost(host));
-	} catch (Exception e)
-	{
-	    e.printStackTrace();
-	    return false;
+	private boolean pingHost(String host) {
+		try
+		{
+		    InetAddress address = InetAddress.getByName(host);
+		    return (address.isReachable(10000) || fallbackPingHost(host));
+		} catch (Exception e)
+		{
+		    e.printStackTrace();
+		    return false;
+		}
 	}
-    }
 
     public String getIP() {
         return IP;
@@ -148,32 +148,31 @@ public class GrowlPublisher extends Notifier {
             try {
             	String [] clients = IP.replace(" ","").split(",");
             	for (int i=0; i< clients.length; i++) {
-            		if (pingHost(clients[i])) {
-            			LOGGER.log(Level.INFO, "Sending Growl to " + clients[i] + "...");
-                    	String message = createGrowlMessage(build);
-                    	
-                        GrowlConnector growl = new GrowlConnector(clients[i]);
-                        growl.setPassword(password);
-                        
-                        Application hudsonApp = new Application("Hudson");
-                        hudsonApp.setIcon("http://hudson-ci.org/images/butler.png");
-                       
-                        NotificationType buildNotify = new NotificationType("BuildNotify");
-                        NotificationType[] notificationTypes = new NotificationType[] { buildNotify };
-                        
-                        growl.register(hudsonApp, notificationTypes);
-
-                        Notification hudsonNotify = new Notification(hudsonApp, buildNotify, "Hudson Build", message);
-                        hudsonNotify.setSticky(true);
-                        
-                        if (growl.notify(hudsonNotify) != IResponse.OK){
-                            MacGrowler notifier = MacGrowler.register( appName, password, clients[i]);
-                            notifier.notify( appName, "Hudson Build", message, password);
-                        }
-            		} else {
+            		if (!pingHost(clients[i])) {
             			LOGGER.log(Level.INFO, "Cannot send  Growl to " + clients[i] + ", host is down.");
-            		}
-                	
+									return;
+								}
+								LOGGER.log(Level.INFO, "Sending Growl to " + clients[i] + "...");
+								String message = createGrowlMessage(build);
+
+								GrowlConnector growl = new GrowlConnector(clients[i]);
+								growl.setPassword(password);
+
+								Application hudsonApp = new Application("Jenkins");
+								hudsonApp.setIcon("http://jenkins-ci.org/images/butler.png");
+
+								NotificationType buildNotify = new NotificationType("BuildNotify");
+								NotificationType[] notificationTypes = new NotificationType[] { buildNotify };
+
+								growl.register(hudsonApp, notificationTypes);
+
+								Notification hudsonNotify = new Notification(hudsonApp, buildNotify, "Jenkins Build", message);
+								hudsonNotify.setSticky(true);
+
+								if (growl.notify(hudsonNotify) != IResponse.OK){
+									MacGrowler notifier = MacGrowler.register( appName, password, clients[i]);
+									notifier.notify( appName, "Jenkins Build", message, password);
+								}
             	}
             } catch (Exception e) {
                 LOGGER.log(Level.SEVERE, "Unable to send growl.", e);
