@@ -1,22 +1,10 @@
 package hudson.plugins.growl;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.util.Arrays;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sf.json.JSONObject;
-import net.sf.libgrowl.Application;
-import net.sf.libgrowl.GrowlConnector;
-import net.sf.libgrowl.IResponse;
-import net.sf.libgrowl.Notification;
-import net.sf.libgrowl.NotificationType;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.methods.GetMethod;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -42,145 +30,58 @@ import hudson.plugins.growl.MacGrowler;
 @SuppressWarnings("unchecked")
 public class GrowlPublisher extends Notifier {
 
-		private static final List<String> VALUES_REPLACED_WITH_NULL = Arrays.asList("", "(Default)",
-						"(System Default)");
-
 		private static final Logger LOGGER = Logger.getLogger(GrowlPublisher.class.getName());
-		private final String appName = "Growler";
 		
 		private String IP;
 		private Boolean onlyOnFailureOrRecovery;
 
-		private GrowlPublisher(String IP, Boolean onlyOnFailureOrRecovery) {
+		private GrowlPublisher(String ip, Boolean onlyOnFailureOrRecovery) {
 				this.onlyOnFailureOrRecovery = onlyOnFailureOrRecovery;
-				this.IP = IP;
+				this.IP = ip;
 		}
 
 		@DataBoundConstructor
-		public GrowlPublisher(String IP,String onlyOnFailureOrRecovery) {
-				this(cleanToString(IP), cleanToBoolean(onlyOnFailureOrRecovery));
+		public GrowlPublisher(String ip,String onlyOnFailureOrRecovery) {
+				this(Cleaner.toString(ip), Cleaner.toBoolean(onlyOnFailureOrRecovery));
 		}
 
-		private static String cleanToString(String string) {
-				return VALUES_REPLACED_WITH_NULL.contains(string) ? null : string;
-		}
-
-		private static Boolean cleanToBoolean(String string) {
-			Boolean result = null;
-			if ("true".equals(string) || "Yes".equals(string)) {
-				result = Boolean.TRUE;
-			} else if ("false".equals(string) || "No".equals(string)) {
-				result = Boolean.FALSE;
-			}
-			return result;
-		}
-
-	 private static String createTinyUrl(String url) throws IOException {
-				HttpClient client = new HttpClient();
-				GetMethod gm = new GetMethod("http://tinyurl.com/api-create.php?url="
-								+ url.replace(" ", "%20"));
-
-				int status = client.executeMethod(gm);
-				if (status == HttpStatus.SC_OK) {
-						return gm.getResponseBodyAsString();
-				} else {
-						throw new IOException("Non-OK response code back from tinyurl: " + status);
-				}
-
-		}
-	 
-	 private String createGrowlMessage(AbstractBuild<?, ?> build) {
-		String projectName = build.getProject().getName();
-		String result = build.getResult().toString();
-	
-		String tinyUrl = "";
-
-		String absoluteBuildURL = ((DescriptorImpl) getDescriptor()).getUrl() + build.getUrl();
-		try {
-			tinyUrl = createTinyUrl(absoluteBuildURL);
-		} catch (Exception e) {
-			tinyUrl = "?";
-		}
-		
-		return String.format("Project: %s\nStatus: %s\nBuild Number: %d\nURL:%s", projectName, result, build.number, tinyUrl);
+	public String getIP() {
+			return IP;
 	}
 
-		public static boolean fallbackPingHost(String host) {
-				try
-				{
-						String command = "ping " + (System.getProperty("os.name").toLowerCase().indexOf("win")>=0) ? "-n 1 -w 1000 " : "-c 1 -W 1 ";
-						Process p = Runtime.getRuntime().exec(command + host);
-						p.waitFor();
-						return (p.exitValue() == 0);
-				} catch (Exception e) {
-						return false;
-				}
-		}
-
-	private boolean pingHost(String host) {
-		try
-		{
-				InetAddress address = InetAddress.getByName(host);
-				return (address.isReachable(10000) || fallbackPingHost(host));
-		} catch (Exception e)
-		{
-				e.printStackTrace();
-				return false;
-		}
+	public Boolean getOnlyOnFailureOrRecovery() {
+		return onlyOnFailureOrRecovery;
 	}
 
-		public String getIP() {
-				return IP;
-		}
+	public BuildStepMonitor getRequiredMonitorService() {
+		return BuildStepMonitor.BUILD;
+	}
 
-		public Boolean getOnlyOnFailureOrRecovery() {
-				return onlyOnFailureOrRecovery;
-		}
-
-		public BuildStepMonitor getRequiredMonitorService() {
-				return BuildStepMonitor.BUILD;
-		}
+	private String createGrowlMessage(AbstractBuild<?, ?> build){
+		return new Message(build, (DescriptorImpl)getDescriptor()).createMessage();
+	}
 
 		@Override
 		public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
-			if (shouldgrowl(build)) {
-				String password = ((DescriptorImpl) getDescriptor()).password;
-						try {
-							String [] clients = IP.replace(" ","").split(",");
-							for (int i=0; i< clients.length; i++) {
-								if (!pingHost(clients[i])) {
-									LOGGER.log(Level.INFO, "Cannot send	 Growl to " + clients[i] + ", host is down.");
-									return;
-								}
-								LOGGER.log(Level.INFO, "Sending Growl to " + clients[i] + "...");
-								String message = createGrowlMessage(build);
-
-								GrowlConnector growl = new GrowlConnector(clients[i]);
-								growl.setPassword(password);
-
-								Application hudsonApp = new Application("Jenkins");
-								hudsonApp.setIcon("http://jenkins-ci.org/images/butler.png");
-
-								NotificationType buildNotify = new NotificationType("BuildNotify");
-								NotificationType[] notificationTypes = new NotificationType[] { buildNotify };
-
-								growl.register(hudsonApp, notificationTypes);
-
-								Notification hudsonNotify = new Notification(hudsonApp, buildNotify, "Jenkins Build", message);
-								hudsonNotify.setSticky(true);
-
-								if (growl.notify(hudsonNotify) != IResponse.OK){
-									MacGrowler notifier = MacGrowler.register( appName, password, clients[i]);
-									notifier.notify( appName, "Jenkins Build", message, password);
-								}
-							}
-						} catch (Exception e) {
-								LOGGER.log(Level.SEVERE, "Unable to send growl.", e);
-								return false;
-						}
-			}
-			
+			if (!shouldGrowl(build)) {
 				return true;
+			}
+			String password = ((DescriptorImpl) getDescriptor()).password;
+			try {
+				String [] clients = IP.replace(" ","").split(",");
+				for(String clientIp : clients) {
+					if (Pinger.host(clientIp)) {
+						LOGGER.log(Level.INFO, "Sending Growl to " + clientIp + "...");
+						new Growler().send(clientIp, password, createGrowlMessage(build));
+					} else {
+						LOGGER.log(Level.INFO, "Cannot send	 Growl to " + clientIp + ", host is down.");
+					}
+				}
+			} catch (Exception e) {
+				LOGGER.log(Level.SEVERE, "Unable to send growl.", e);
+				return false;
+			}
+			return true;
 		}
 		
 		/**
@@ -190,7 +91,7 @@ public class GrowlPublisher extends Notifier {
 	 * @param build the Build object
 	 * @return true if we should growl this build result
 	 */
-	protected boolean shouldgrowl(AbstractBuild<?, ?> build) {
+	protected boolean shouldGrowl(AbstractBuild<?, ?> build) {
 		if (onlyOnFailureOrRecovery == null) {
 			if (((DescriptorImpl) getDescriptor()).onlyOnFailureOrRecovery) {
 				return isFailureOrRecovery(build);
@@ -214,18 +115,18 @@ public class GrowlPublisher extends Notifier {
 		 * @return true if this build represents a recovery or failure
 		 */
 		protected boolean isFailureOrRecovery(AbstractBuild<?, ?> build) {
-				if (build.getResult() == Result.FAILURE || build.getResult() == Result.UNSTABLE) {
-						return true;
-				} else if (build.getResult() == Result.SUCCESS) {
-					AbstractBuild<?, ?> previousBuild = build.getPreviousBuild();
-						if (previousBuild != null && previousBuild.getResult() != Result.SUCCESS) {
-								return true;
-						} else {
-								return false;
-						}
-				} else {
-						return false;
-				}
+			if (build.getResult() == Result.FAILURE || build.getResult() == Result.UNSTABLE) {
+				return true;
+			}
+			if (build.getResult() != Result.SUCCESS) {
+				return false;
+			}
+			AbstractBuild<?, ?> previousBuild = build.getPreviousBuild();
+			if (previousBuild != null && previousBuild.getResult() != Result.SUCCESS) {
+				return true;
+			} else {
+				return false;
+			}
 		}
 
 	 
@@ -284,7 +185,6 @@ public class GrowlPublisher extends Notifier {
 								hudsonUrl = Functions.inferHudsonURL(req);
 								save();
 						}
-						
 						return super.newInstance(req, formData);
 				}
 		}
