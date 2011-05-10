@@ -1,4 +1,4 @@
-package hudson.plugins.growl;
+package hudson.plugins.growl.growler;
 
 import net.sf.libgrowl.Application;
 import net.sf.libgrowl.GrowlConnector;

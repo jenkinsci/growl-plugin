@@ -1,4 +1,4 @@
-package hudson.plugins.growl;
+package hudson.plugins.growl.growler;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;

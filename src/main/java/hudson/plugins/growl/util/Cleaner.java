@@ -1,4 +1,4 @@
-package hudson.plugins.growl;
+package hudson.plugins.growl.util;
 
 import java.util.Arrays;
 import java.util.List;
