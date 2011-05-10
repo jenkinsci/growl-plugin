@@ -4,7 +4,9 @@
     <groupId>org.jvnet.hudson.plugins</groupId>
     <artifactId>plugin</artifactId>
     <version>1.376</version><!-- which version of Hudson is this plugin built against? -->
+<!--
     <relativePath>../pom.xml</relativePath>
+-->
   </parent>
 
   <artifactId>growl</artifactId>
@@ -26,11 +28,24 @@
     <!--  Used to provide libgrowl, http://sourceforge.net/projects/libgrowl/vf .. -->
     <repository>
         <id>sbower-snapshots</id>
-        <url>http://github.com/sbower/sbower-mvn-repo/raw/master/releases</url>
+				<!-- <url>https://github.com/sbower/sbower-mvn-repo/raw/master/releases</url> -->
+        <url>https://github.com/sbower/sbower-mvn-repo/raw/master/releases</url>
     </repository>
   </repositories>
 
   <dependencies>
+	 <dependency>
+	     <groupId>org.mockito</groupId>
+	     <artifactId>mockito-all</artifactId>
+	     <version>1.8.5</version>
+	     <scope>test</scope>
+	 </dependency>
+	 <dependency>
+	     <groupId>junit</groupId>
+	     <artifactId>junit</artifactId>
+	     <version>4.8.2</version>
+	     <scope>test</scope>
+	 </dependency>
 	 <dependency>
 	     <groupId>commons-httpclient</groupId>
 	     <artifactId>commons-httpclient</artifactId>
