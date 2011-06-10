@@ -1,30 +1,50 @@
 package hudson.plugins.growl.util;
 
-
 import hudson.model.AbstractBuild;
 import hudson.plugins.growl.GrowlPublisher.DescriptorImpl;
 
 public class Message {
 	
-	private AbstractBuild build;
-	DescriptorImpl descriptor;
-
+	private AbstractBuild<?, ?> build;
+	private DescriptorImpl descriptor;
+    private String url;
+    private String messageText;
 	
-	public Message(AbstractBuild build, DescriptorImpl descriptor){
+	public Message(AbstractBuild<?, ?> build, DescriptorImpl descriptor){
 		this.build = build;
 		this.descriptor = descriptor;
+		this.url = "";
+		this.messageText = "";
 	}
 	
-	public String create(){
+	private void create(){
 		String projectName = build.getProject().getName();
 		String result = build.getResult().toString();
 	
-		String tinyUrl = "";
-
 		String absoluteBuildURL = descriptor.getUrl() + build.getUrl();
-		tinyUrl = absoluteBuildURL;
+		setUrl(absoluteBuildURL);
 
-		return String.format("Project: %s\nStatus: %s\nBuild Number: %d\nURL:%s", projectName, result, build.number, tinyUrl);
+		setMessageText(String.format("Project: %s\nStatus: %s\nBuild Number: %d", projectName, result, build.number));
+	}
+
+	private void setUrl(String url) {
+		this.url = url;
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	private void setMessageText(String messageText) {
+		this.messageText = messageText;
+	}
+
+	public String getMessageText() {
+		if(messageText.isEmpty()) {
+			create();
+		}
+		
+		return messageText;
 	}
 		 
 	
