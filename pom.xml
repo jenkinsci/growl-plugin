@@ -1,38 +1,50 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
+  
   <parent>
-    <groupId>org.jvnet.hudson.plugins</groupId>
+    <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.376</version><!-- which version of Hudson is this plugin built against? -->
-<!--
-    <relativePath>../pom.xml</relativePath>
--->
+    <version>1.414</version><!-- which version of Jenkins is this plugin built against? -->
   </parent>
 
   <artifactId>growl</artifactId>
   <version>1.1-SNAPSHOT</version>
   <packaging>hpi</packaging>
-  <name>Hudson Growl Plugin</name>
+  <name>Jenkins Growl Plugin</name>
   <description>Sends growl notification</description>
-  <url>http://wiki.hudson-ci.org/display/HUDSON/Growl+Plugin</url>
+  <url>https://wiki.jenkins-ci.org/display/JENKINS/Growl+Plugin</url>
   	
    <developers>
     <developer>
-      <id>srb55</id>
+      <id>sbower</id>
       <name>Shawn Bower</name>
       <email>sbower@advws.net</email>
     </developer>
   </developers>
-
-  <repositories>
-    <!--  Used to provide libgrowl, http://sourceforge.net/projects/libgrowl/vf .. -->
+  
+  <scm>
+    <connection>scm:git:git://github.com/jenkinsci/growl-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:jenkinsci/growl-plugin.git</developerConnection>
+  </scm>
+  
+  <distributionManagement>
     <repository>
-        <id>sbower-snapshots</id>
-				<!-- <url>https://github.com/sbower/sbower-mvn-repo/raw/master/releases</url> -->
-        <url>https://github.com/sbower/sbower-mvn-repo/raw/master/releases</url>
+      <id>maven.jenkins-ci.org</id>
+      <url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
     </repository>
-  </repositories>
-
+  </distributionManagement>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-release-plugin</artifactId>
+        <configuration>
+          <goals>deploy</goals>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  
   <dependencies>
 	 <dependency>
 	     <groupId>org.mockito</groupId>
@@ -51,10 +63,10 @@
 	     <artifactId>commons-httpclient</artifactId>
 	     <version>3.1</version>
 	 </dependency>
-    <dependency>
-      <groupId>net.sf.libgrowl</groupId>
-      <artifactId>libgrowl</artifactId>
-      <version>0.3</version>
-    </dependency>
+	<dependency>
+	  <groupId>net.sf.libgrowl</groupId>
+	  <artifactId>libgrowl</artifactId>
+	  <version>0.4</version>
+	</dependency>
  </dependencies>
 </project>

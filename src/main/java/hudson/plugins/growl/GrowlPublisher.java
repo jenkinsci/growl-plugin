@@ -15,7 +15,7 @@ import hudson.model.BuildListener;
 import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.model.Descriptor.FormException;
+import hudson.model.Hudson;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
@@ -23,7 +23,6 @@ import hudson.tasks.Publisher;
 import hudson.tasks.Mailer;
 
 import hudson.plugins.growl.growler.Growler;
-import hudson.plugins.growl.growler.MacGrowler;
 import hudson.plugins.growl.util.Cleaner;
 import hudson.plugins.growl.util.Message;
 import hudson.plugins.growl.util.Pinger;
@@ -62,8 +61,8 @@ public class GrowlPublisher extends Notifier {
 		return BuildStepMonitor.BUILD;
 	}
 
-	private String createGrowlMessage(AbstractBuild<?, ?> build){
-		return new Message(build, (DescriptorImpl)getDescriptor()).create();
+	private Message createGrowlMessage(AbstractBuild<?, ?> build){
+		return new Message(build, (DescriptorImpl)getDescriptor());
 	}
 
 		@Override
@@ -71,13 +70,16 @@ public class GrowlPublisher extends Notifier {
 			if (!shouldGrowl(build)) {
 				return true;
 			}
+			
 			String password = ((DescriptorImpl) getDescriptor()).password;
+			Message message = createGrowlMessage(build);
+			
 			try {
 				String [] clients = IP.replace(" ","").split(",");
 				for(String clientIp : clients) {
 					if (Pinger.host(clientIp)) {
 						LOGGER.log(Level.INFO, "Sending Growl to " + clientIp + "...");
-						new Growler().send(clientIp, password, createGrowlMessage(build));
+						new Growler().send(clientIp, password, message);
 					} else {
 						LOGGER.log(Level.INFO, "Cannot send	 Growl to " + clientIp + ", host is down.");
 					}
@@ -154,11 +156,10 @@ public class GrowlPublisher extends Notifier {
 			onlyOnFailureOrRecovery = false;
 
 			req.bindParameters(this, "growl.");
-			hudsonUrl = Mailer.descriptor().getUrl();
+			hudsonUrl = Hudson.getInstance().getRootUrl();
 
 			save();
 			return super.configure(req, formData);
-			// return includeUrl;
 		}
 
 		@Override
