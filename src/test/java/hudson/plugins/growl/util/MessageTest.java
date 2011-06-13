@@ -34,8 +34,8 @@ public class MessageTest {
 		when(build.number).thenReturn(10);
 		
 		
-		confirmation = String.format("Project: %s\nStatus: %s\nBuild Number: %d\nURL:%s", 
-				"ProjectName", Result.SUCCESS.toString(), 10, "http://localhost:8080/jobs/ProjectName");
+		confirmation = String.format("Project: %s\nStatus: %s\nBuild Number: %d", 
+				"ProjectName", Result.SUCCESS.toString(), 10);
 	}
 	
 	@Ignore
